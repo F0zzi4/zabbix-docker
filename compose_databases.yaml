@@ -17,7 +17,7 @@ services:
   attach: false
   volumes:
    - ${DATA_DIRECTORY}/var/lib/mysql:/var/lib/mysql:rw
-   - ${ENV_VARS_DIRECTORY}/mysql_init/init_proxy_db.sql:/docker-entrypoint-initdb.d/mysql_init_proxy.sql:ro
+#   - ${ENV_VARS_DIRECTORY}/mysql_init:/docker-entrypoint-initdb.d:ro
 #   - mysql_socket:/var/run/mysqld/
   env_file:
    - path: ${ENV_VARS_DIRECTORY}/.env_db_mysql
@@ -50,11 +50,11 @@ services:
 
  postgres-server:
   image: "${POSTGRESQL_IMAGE}:${POSTGRESQL_IMAGE_TAG}"
-#  command: -c ssl=on -c ssl_cert_file=/run/secrets/server-cert.pem -c ssl_key_file=/run/secrets/server-key.pem -c ssl_ca_file=/run/secrets/root-ca.pem
   restart: "${RESTART_POLICY}"
   attach: false
   volumes:
-   - ${DATA_DIRECTORY}/var/lib/postgresql/data:/var/lib/postgresql/data:rw
+   - postgres_data:/var/lib/postgresql
+#   - ${ENV_VARS_DIRECTORY}/postgresql_init:/docker-entrypoint-initdb.d:ro
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CERT_FILE:/run/secrets/server-cert.pem:ro
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_KEY_FILE:/run/secrets/server-key.pem:ro
@@ -112,3 +112,37 @@ services:
    database:
     aliases:
      - elasticsearch
+
+ clickhouse:
+  image: "${CLICKHOUSE_IMAGE}:${CLICKHOUSE_IMAGE_TAG}"
+  restart: "${RESTART_POLICY}"
+  attach: false
+  profiles:
+   - clickhouse
+  env_file:
+   - path: ${ENV_VARS_DIRECTORY}/.env_db_clickhouse
+     required: true
+  ulimits:
+   nofile:
+    soft: 262144
+    hard: 262144
+  cap_add:
+    - SYS_NICE
+#    - IPC_LOCK
+  volumes:
+    - ${ENV_VARS_DIRECTORY}/clickhouse_init:/docker-entrypoint-initdb.d:ro
+    - ${DATA_DIRECTORY}/var/lib/clickhouse:/var/lib/clickhouse:rw
+    - ${DATA_DIRECTORY}/var/log/clickhouse-server:/var/log/clickhouse-server:rw
+  stop_grace_period: 5m
+  healthcheck:
+    test:
+     - CMD-SHELL
+     - clickhouse-client --user "$${CLICKHOUSE_USER:-default}" --password "$${CLICKHOUSE_PASSWORD:-}" --query "SELECT 1"
+    interval: 10s
+    timeout: 5s
+    retries: 20
+    start_period: 40s
+  networks:
+   database:
+    aliases:
+     - clickhouse

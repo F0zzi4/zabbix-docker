@@ -130,13 +130,17 @@ services:
    file: compose_databases.yaml
    service: elasticsearch
 
+ clickhouse:
+  extends:
+   file: compose_databases.yaml
+   service: clickhouse
+
  selenium:
   extends:
    file: compose_additional_components.yaml
    service: selenium
 
  selenium-chrome:
-  platform: linux/amd64
   extends:
    file: compose_additional_components.yaml
    service: selenium-chrome
@@ -168,6 +172,8 @@ networks:
     internal: true
     ipam:
       driver: "${DATABASE_NETWORK_DRIVER}"
+      config:
+      - subnet: "${DATABASE_SUBNET}"
   tools_frontend:
     driver: bridge
     enable_ipv6: "${ADD_TOOLS_ENABLE_IPV6}"
@@ -180,6 +186,7 @@ volumes:
   snmptraps: {}
 #  mysql_socket: {}
 #  pgsql_socket: {}
+  postgres_data:
 
 secrets:
   MYSQL_USER:
