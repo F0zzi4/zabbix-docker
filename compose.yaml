@@ -1,4 +1,4 @@
-services:
+services:  
  server-db-init:
   extends:
    file: compose_zabbix_components.yaml
