@@ -53,7 +53,7 @@ services:
   restart: "${RESTART_POLICY}"
   attach: false
   volumes:
-   - postgres_data:/var/lib/postgresql
+   - postgres_data:/var/lib/postgresql/data:rw
 #   - ${ENV_VARS_DIRECTORY}/postgresql_init:/docker-entrypoint-initdb.d:ro
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CERT_FILE:/run/secrets/server-cert.pem:ro
